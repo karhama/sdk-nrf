@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
-
+ 
 #ifndef DATE_TIME_H__
 #define DATE_TIME_H__
 
