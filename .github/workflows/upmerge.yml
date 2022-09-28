@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ncs/nrf
           fetch-depth: 0
@@ -35,13 +35,39 @@ jobs:
           west init -l nrf
           west update
 
-      - name: ncs-upmerge
-        working-directory: ncs
+      - name: ncs-upmerge & zephyr-sdk PR
+        working-directory: ncs/zephyr
+        env:
+          #GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.NORDIC_BUILDER_TOKEN }}
         run: |   
-          git config --global user.email "nomail@nordicsemi.no"
-          git config --global user.name "Upmerge bot"
-          cd zephyr && git remote add -f upstream https://github.com/zephyrproject-rtos/zephyr
+          git config --global user.email "noreply@nordicsemi.no"
+          git config --global user.name "NordicBuilder Bot"
+          git remote add -f upstream https://github.com/karhama/zephyr && git remote add -f origin https://nordicbuilder:${{secrets.NORDIC_BUILDER_TOKEN}}@github.com/nordicbuilder/sdk-zephyr
+          git checkout -b upmerge_candidate
           west ncs-upmerger zephyr
+          git push origin upmerge_candidate:upmerge_candidate -f -u
+          
+   
+      - name: create sdk-nrf PR with updated west.yml
+        working-directory: ncs/nrf
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git checkout -b upmerge_candidate
+          NEWHASH=`git --git-dir ../zephyr/.git rev-parse upmerge_candidate`
+          OLDHASH=`git --git-dir ../zephyr/.git rev-parse manifest-rev`
+          sed -i "s/revision: $OLDHASH/revision: $NEWHASH/" west.yml
+          git commit -a -m "[upmerge] Automatic upmerge - update west.yml"
+          git push origin upmerge_candidate:upmerge_candidate -u
+          gh pr create --base main --title "Automatic Zephyr upmerge" --body "automatic Zephyr upmerge (github action)"
+
+      # push to some upmerge_candidate branch in sdk-zephyr
+      # modify manifest file
+      #        # gh pr create
+#                 git checkout -b upmerge_candidate
+          #git push fork upmerge_candidate:upmerge_candidate -f
 
 
+# gh pr create --base main --title "Automatic upmerge" --body "automatic upmerge (github action)" --repo github.com/karhama/sdk-zephyr
 
