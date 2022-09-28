@@ -8,19 +8,14 @@ on: workflow_dispatch
 
 
 jobs:
-  build:
+  auto-upmerge:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ncs/nrf
           fetch-depth: 0
-      - name: Install packages
-        run: |
-          sudo apt update
-          sudo apt-get install -y ninja-build mscgen plantuml libclang1-9 libclang-cpp9
 
       - name: Install base dependencies
         working-directory: ncs
@@ -33,15 +28,36 @@ jobs:
         working-directory: ncs
         run: |
           west init -l nrf
-          west update
+          west update -n -o=--depth=1 zephyr
+          git config --global user.email "noreply@nordicsemi.no"
+          git config --global user.name "NordicBuilder"
 
-      - name: ncs-upmerge
-        working-directory: ncs
+      - name: Run ncs-upmerge and create zephyr-sdk upmerge PR
+        working-directory: ncs/zephyr
+        env:
+          #GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.NORDIC_BUILDER_TOKEN }}
         run: |   
-          git config --global user.email "nomail@nordicsemi.no"
-          git config --global user.name "Upmerge bot"
-          cd zephyr && git remote add -f upstream https://github.com/zephyrproject-rtos/zephyr
+          git remote add -f upstream https://github.com/karhama/zephyr && git remote add -f origin https://nordicbuilder:${{secrets.NORDIC_BUILDER_TOKEN}}@github.com/nordicbuilder/sdk-zephyr
+          git checkout -b upmerge_local
           west ncs-upmerger zephyr
-
-
+          git push origin upmerge_local:upmerge_rc_$GITHUB_RUN_ID -u
+          UPSTREAMHASH=`git rev-parse --short upstream/main`
+          gh pr create --base main --title "[nrf mergeup] Merge upstream automatically up to commit $UPSTREAMHASH" --body "Automatic upmerge action" --repo github.com/karhama/sdk-zephyr
+   
+      - name: create sdk-nrf PR with updated west.yml
+        working-directory: ncs/nrf
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #GH_TOKEN: ${{ secrets.NORDIC_BUILDER_TOKEN }}
+          # nordicbuilder cannot set labels
+        run: |
+          NEWHASH=`git --git-dir ../zephyr/.git rev-parse upmerge_local`
+          OLDHASH=`git --git-dir ../zephyr/.git rev-parse manifest-rev`
+          git checkout -b upmerge_local
+          sed -i "s/revision: $OLDHASH/revision: $NEWHASH/" west.yml
+          git commit -a -m "manifest: Update sdk-zephyr revision (automatic Zephyr upmerge)" --signoff
+          git push origin upmerge_local:upmerge_rc_$GITHUB_RUN_ID -u
+          gh pr create --base upmerge_action --title "manifest: Update sdk-zephyr revision (automatic upmerge)" --body "Automatic upmerge action" --label "CI-all-test"
+          gh pr merge upmerge_rc_$GITHUB_RUN_ID --auto 
 
