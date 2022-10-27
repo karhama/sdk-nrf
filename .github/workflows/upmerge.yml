@@ -1,0 +1,47 @@
+name: Zephyr upmerge
+
+#on:
+#  schedule:
+#    - cron: "0 0 * * *"
+on: workflow_dispatch
+
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+        with:
+          path: ncs/nrf
+          fetch-depth: 0
+      - name: Install packages
+        run: |
+          sudo apt update
+          sudo apt-get install -y ninja-build mscgen plantuml libclang1-9 libclang-cpp9
+
+      - name: Install base dependencies
+        working-directory: ncs
+        run: |
+          sudo pip3 install -U setuptools wheel pip
+          pip3 install -r nrf/scripts/requirements-base.txt
+          pip3 install -r nrf/scripts/requirements-extra.txt
+
+      - name: West init and update
+        working-directory: ncs
+        run: |
+          west init -l nrf
+          west update
+
+      - name: ncs-upmerge
+        working-directory: ncs
+        run: |   
+          git config --global user.email "nomail@nordicsemi.no"
+          git config --global user.name "Upmerge bot"
+          cd zephyr && git remote add -f upstream https://github.com/zephyrproject-rtos/zephyr
+          west ncs-upmerger zephyr
+
+
+
