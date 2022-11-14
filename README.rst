@@ -16,6 +16,7 @@ The following repositories must be combined with sdk-nrf:
 * sdk-zephyr
 * sdk-mcuboot
 * nrfxlib
+* asdf
 
 Documentation
 *************
