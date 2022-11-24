@@ -64,3 +64,16 @@ jobs:
           git commit -a -m "manifest: Update sdk-zephyr revision (automatic Zephyr upmerge)" -m "Automatically created by Github Action" --signoff
           git push origin upmerge_local:auto-upmerge/$GITHUB_RUN_ID -u
           gh pr create --base main --title "manifest: Update sdk-zephyr revision (automatic upmerge)" --body "Automatic upmerge action" --label "CI-all-test" --label "auto-upmerge"
+
+  teams-notify:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: auto-upmerge-create-PRs
+    steps:
+    - name: Send a Notification
+        id: notify
+        uses: thechetantalwar/teams-notify@v2
+        with:
+        teams_webhook_url: ${{ secrets.TEAMS_CONNECTOR }}
+        message: "Github Action Build Number ${{ github.run_number }} Completed for ${{ github.repository }} and the outcome is  ${{ needs.build.result }}."
+        
