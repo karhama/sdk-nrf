@@ -11,7 +11,7 @@ env:
 
 jobs:
   auto-upmerge-create-PRs:
-    if: github.repository == 'nrfconnect/sdk-nrf'
+    if: github.repository == 'karhama/sdk-nrf'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
