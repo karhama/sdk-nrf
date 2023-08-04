@@ -58,6 +58,7 @@ manifest:
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/introduction/index.html
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/guides/modules.html
     - name: zephyr
+      url: https://github.com/PerMac/sdk-zephyr.git
       repo-path: sdk-zephyr
       revision: 0357023741bed9cce49e7621d1a342d898800a45
       import:
