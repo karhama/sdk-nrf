@@ -37,6 +37,8 @@ manifest:
       url-base: https://github.com/ant-nrfconnect
     - name: babblesim
       url-base: https://github.com/BabbleSim
+    - name: permac
+      url-base: https://github.com/PerMac
 
   # If not otherwise specified, the projects below should be obtained
   # from the ncs remote.
@@ -58,7 +60,7 @@ manifest:
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/introduction/index.html
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/guides/modules.html
     - name: zephyr
-      url: https://github.com/PerMac/sdk-zephyr.git
+      remote: permac
       repo-path: sdk-zephyr
       revision: 0357023741bed9cce49e7621d1a342d898800a45
       import:
