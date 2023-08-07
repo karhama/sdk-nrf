@@ -8,6 +8,7 @@
 
 #include <zephyr/devicetree.h>
 
+
 #define LEDS_NODE_ID DT_PATH(leds)
 #define BUTTONS_NODE_ID DT_PATH(buttons)
 #define INCREMENT_BY_ONE(button_or_led) +1
