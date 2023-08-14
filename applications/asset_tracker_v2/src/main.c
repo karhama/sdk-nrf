@@ -118,7 +118,7 @@ static struct module_data self = {
 	.supports_shutdown = true,
 };
 
-/* Convenience functions used in internal state handling. */
+/* Convenience functions used in internal state  handling. */
 static char *state2str(enum state_type new_state)
 {
 	switch (new_state) {
