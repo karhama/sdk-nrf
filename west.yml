@@ -62,7 +62,7 @@ manifest:
     - name: zephyr
       remote: permac
       repo-path: sdk-zephyr
-      revision: 0357023741bed9cce49e7621d1a342d898800a45
+      revision: pull/9/head
       import:
         # In addition to the zephyr repository itself, NCS also
         # imports the contents of zephyr/west.yml at the above
