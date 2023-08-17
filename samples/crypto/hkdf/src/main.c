@@ -38,7 +38,7 @@ LOG_MODULE_REGISTER(hkdf, LOG_LEVEL_DBG);
 #define NRF_CRYPTO_EXAMPLE_HKDF_AINFO_SIZE (10)
 #define NRF_CRYPTO_EXAMPLE_HKDF_OUTPUT_KEY_SIZE (42)
 
-/* Test data from RFC 5869 Test Case 1 (https://tools.ietf.org/html/rfc5869) */
+/* Test data from RFC 5869 Test Case 1 (https://tools.ietf.org/html/rfc5869)  */
 static uint8_t m_input_key[NRF_CRYPTO_EXAMPLE_HKDF_INPUT_KEY_SIZE] = {
 	0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
 	0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b
