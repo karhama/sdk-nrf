@@ -1,6 +1,6 @@
 /** @file
  *  @brief Bluetooth Mesh DFU Target role handler
- */
+ */ 
 
 /*
  * Copyright (c) 2021 Nordic Semiconductor ASA
