@@ -21,7 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'west_commands'))
 from pygit2_helpers import zephyr_commit_area, commit_title
 
 # A container for pull request information.
-class pr_info(NamedTuple):
+class pr_info(NamedTuple):   
     number: int
     title: str
     html_url: str
