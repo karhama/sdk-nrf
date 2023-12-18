@@ -1,9 +1,9 @@
 #
 # Copyright (c) 2018 Nordic Semiconductor
 #
-# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
-#
 
+#   
+  
 # This boilerplate is automatically included through ZephyrBuildConfig.cmake, found in
 # ${NRF_DIR}/share/zephyrbuild-package/cmake/ZephyrBuildConfig.cmake
 # For more information regarding the Zephyr Build Configuration CMake package, please refer to:
