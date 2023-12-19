@@ -11,7 +11,7 @@ Some applications target custom hardware designed for a specific use case.
 You can also run them on different hardware like a generic development kit, but with limited functionality.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :glob:
    :caption: Subpages:
 
