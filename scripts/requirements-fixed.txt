@@ -5,7 +5,7 @@
 #    pip-compile --allow-unsafe --annotation-style=line --output-file=nrf/scripts/requirements-fixed.txt --strip-extras bootloader/mcuboot/scripts/requirements.txt nrf/scripts/requirements-ci.txt nrf/scripts/requirements-extra.txt nrf/scripts/requirements.txt zephyr/scripts/requirements.txt
 #
 aenum==3.1.15             # via -r nrf/scripts/requirements-ci.txt
-anytree==2.9.0            # via -r zephyr/scripts/requirements-base.txt, -r zephyr/scripts/requirements-extras.txt
+anytree==2.12.1            # via -r zephyr/scripts/requirements-base.txt, -r zephyr/scripts/requirements-extras.txt
 appdirs==1.4.4            # via cmsis-pack-manager
 arrow==1.2.1              # via gitlint-core
 astroid==2.15.6           # via pylint
