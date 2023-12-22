@@ -11,14 +11,10 @@ jobs:
     name: Remove label
     steps:
       - name: Remove CI-trusted-author label
-        uses: buildsville/add-remove-label@v2.0.0
-        with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          labels: CI-trusted-author
-          type: remove
-      - name: Add CI-trusted-author label
-        uses: buildsville/add-remove-label@v2.0.0
-        with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          labels: CI-trusted-author
-          type: add
+        run: gh pr edit ${{ github.event.pull_request.number }} --remove-label "CI-trusted-author"
+
+ #     - name: Add CI-trusted-author label
+ #       run: gh pr edit ${{ github.event.pull_request.number }} --add-label "CI-trusted-author"
+
+
+
