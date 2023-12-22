@@ -9,9 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Remove label
     steps:
-      - name: removelabel
-        uses: buildsville/add-remove-label@v2.0.0
-        with:
-          token: '${{ secrets.GITHUB_TOKEN }}'
-          labels: CI-Requested
-          type: remove
+      - name: Remove CI-requested label
+        run: gh pr edit ${{ github.event.pull_request.number }} --remove-label "CI-Requested"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
