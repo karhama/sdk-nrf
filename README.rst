@@ -1,6 +1,6 @@
 nRF Connect SDK: sdk-nrf
 ########################
-
+  
 .. contents::
    :local:
    :depth: 2
