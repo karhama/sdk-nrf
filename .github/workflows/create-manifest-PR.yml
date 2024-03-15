@@ -1,0 +1,93 @@
+#
+# You can call this workflow in your repository. See the example caller workflow:
+#
+# --------------------------------------------------------------------------------------
+# name: Create manifest PR
+# on: pull_request
+# jobs:
+#   call-workflow:
+#     uses: nrfconnect/sdk-nrf/.github/workflows/.yml@main
+#     with:
+#       repo-path: ${{ github.repository }}
+#       PR-number: ${{ github.event.pull_request.number }}
+#       trigger: 'merged'
+#         # You can find more details about the inputs below.
+# --------------------------------------------------------------------------------------
+
+name: Simple Manifest PR creation / update
+
+on:
+  workflow_call:
+    inputs:
+      repo-path:
+        # input github repository where sub-PR is found. Usually same as 
+        # ${{ github.repository }}. Repo-path should exist in west.yml already.
+        # For example: "sdk-nrfxlib"
+        type: string
+        required: true
+
+      PR-number:
+        # Input sub-PR number in input repository. Usually ${{ github.event.pull_request.number }}"
+        # For example: 1234
+        type: string
+        required: true
+
+      trigger:
+        # github.event.pull_request trigger type for sub-PR. sub-PR could have been 
+        # created, synchronized or merged.
+        # Should be opened, synchronize, merged.
+        type: string
+        required: true
+    secrets:
+      NCS_GITHUB_UPMERGE_TOKEN:
+        required: true
+
+env:
+  GH_TOKEN: ${{ secrets.NCS_GITHUB_UPMERGE_TOKEN }}
+
+jobs:
+  create_manifest_pr:
+    if: ${{ inputs.trigger == 'opened' }}
+    runs-on: ubuntu-latest
+    name: Create manifest PR in sdk-nrf repo
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+      with:
+        repository: 'karhama/sdk-nrf'
+        token: ${{ secrets.NCS_GITHUB_UPMERGE_TOKEN }}
+    - name: Setup yq
+      run: |
+        git config --global user.email "pylon@nordicsemi.no"
+        git config --global user.name "Nordic Builder"  
+    - name: Change west.yml
+      run: |
+        PROJECT_KEY=$(yq '.manifest.projects[] | select(.repo-path == "${{ github.event.repository.name }}") |  key' west.yml)
+        yq '.manifest.projects[$PROJECT_KEY].revision = "pull/${{ inputs.PR-number }}/head"' west.yml > tmp.yml
+        diff -B west.yml tmp.yml | patch west.yml -
+        rm tmp.yml
+    - name: Commit changed west.yml and create PR
+      run: |
+        git checkout -b manifest_pr
+        git add west.yml
+        git commit -m "manifest: Update ${{ github.event.repository.name }} revision (auto-manifest PR)" -m "Automatically created by Github Action" --signoff
+        git push origin manifest_pr:auto-manifest-${{ github.event.repository.name }}-${{ inputs.PR-number }} -u
+        gh pr create --base main --title "manifest: Update revisions of ${{ github.event.repository.name }}" --body "Automatically created by Github Action" --label "CI-all-test"
+        
+
+  retrigger_ci:
+    if: ${{ inputs.trigger == 'synchronize' }}
+    runs-on: ubuntu-latest
+    name: Re-trigger sdk-nrf manifest-PR CI
+    steps:
+      - name: Change commit sha and push it
+        run: |
+          git checkout auto-manifest-${{ github.event.repository.name }}-${{ inputs.PR-number }}
+          git commit --amend --no-edit
+          git push origin auto-manifest-${{ github.event.repository.name }}-${{ inputs.PR-number }}:auto-manifest-${{ github.event.repository.name }}-${{ inputs.PR-number }} -f
+
+  # add ${{ inputs.trigger == 'merged' }}
+
+
+
+
