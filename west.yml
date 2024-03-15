@@ -61,7 +61,7 @@ manifest:
     # https://developer.nordicsemi.com/nRF_Connect_SDK/doc/latest/zephyr/guides/modules.html
     - name: zephyr
       repo-path: sdk-zephyr
-      revision: v3.5.99-ncs1-rc2
+      revision: pull/3/head
       import:
         # In addition to the zephyr repository itself, NCS also
         # imports the contents of zephyr/west.yml at the above
@@ -112,7 +112,7 @@ manifest:
     - name: hostap
       repo-path: sdk-hostap
       path: modules/lib/hostap
-      revision: dda5457ad2cfce99e333980c7764c8d480ae4010
+      revision: pull/3/head
       userdata:
         ncs:
           upstream-url: https://w1.fi/cgit/hostap/
@@ -121,7 +121,7 @@ manifest:
     - name: wfa-qt-control-app
       repo-path: sdk-wi-fiquicktrack-controlappc
       path: modules/lib/wfa-qt-control-app
-      revision: d649bd1342215e089d4211757186705cda179013
+      revision: pull/3/head
       userdata:
         ncs:
           upstream-url: https://github.com/Wi-FiQuickTrack/Wi-FiQuickTrack-ControlAppC
@@ -129,32 +129,32 @@ manifest:
           compare-by-default: true
     - name: mcuboot
       repo-path: sdk-mcuboot
-      revision: v2.0.99-ncs1-rc2
+      revision: pull/3/head
       path: bootloader/mcuboot
     - name: qcbor
       url: https://github.com/laurencelundblade/QCBOR
-      revision: 751d36583a9ce1a640900c57e13c9b6b8f3a2ba2
+      revision: pull/3/head
       path: modules/tee/tf-m/qcbor
     - name: mbedtls
       path: modules/crypto/mbedtls
       repo-path: sdk-mbedtls
-      revision: v3.5.2-ncs1-rc2
+      revision: pull/3/head
     - name: nrfxlib
       repo-path: sdk-nrfxlib
       path: nrfxlib
-      revision: pr-14
+      revision: pull/3/head
     - name: trusted-firmware-m
       repo-path: sdk-trusted-firmware-m
       path: modules/tee/tf-m/trusted-firmware-m
-      revision: v2.0.0-ncs1-rc2
+      revision: pull/3/head
     - name: psa-arch-tests
       repo-path: sdk-psa-arch-tests
       path: modules/tee/tf-m/psa-arch-tests
-      revision: 94a349db22cd0e44136c281724ffc71b6e7391c3
+      revision: pull/3/head
     - name: matter
       repo-path: sdk-connectedhomeip
       path: modules/lib/matter
-      revision: 7653e6c78d0aab6d9c0fd25408e5a908435955b8
+      revision: pull/3/head
       submodules:
         - name: nlio
           path: third_party/nlio/repo
@@ -174,21 +174,21 @@ manifest:
     - name: nrf-802154
       repo-path: sdk-nrf-802154
       path: nrf-802154
-      revision: v2.6.0-rc2
+      revision: pull/3/head
       groups:
         - nrf-802154
     - name: dragoon
       # Only for internal Nordic development
       repo-path: dragoon.git
       remote: dragoon
-      revision: 36f0e50e876848fb02fd9f82cc32e57b91b15ced
+      revision: pull/3/head
       submodules: true
       groups:
         - dragoon
     - name: cjson
       repo-path: sdk-cjson
       path: modules/lib/cjson
-      revision: c6af068b7f05207b28d68880740e4b9ec1e4b50a
+      revision: pull/3/head
       userdata:
         ncs:
           upstream-url: https://github.com/DaveGamble/cJSON
@@ -196,18 +196,18 @@ manifest:
           compare-by-default: false
     - name: sidewalk
       repo-path: sdk-sidewalk
-      revision: 0469c6aac08f796eda54f0576f32695d41e6f64a
+      revision: pull/3/head
       groups:
         - sidewalk
     - name: find-my
       repo-path: sdk-find-my
-      revision: aea77f3c812917e6b763c7c8cfd46cfe661e14aa
+      revision: pull/3/head
       groups:
         - find-my
     - name: azure-sdk-for-c
       repo-path: azure-sdk-for-c
       path: modules/lib/azure-sdk-for-c
-      revision: 308c171cb4b5eed266649012a68406487ec81fb2
+      revision: pull/3/head
       userdata:
         ncs:
           upstream-url: https://github.com/Azure/azure-sdk-for-c
@@ -216,7 +216,7 @@ manifest:
     - name: cirrus
       repo-path: sdk-mcu-drivers
       path: modules/hal/cirrus-logic
-      revision: 3873a08377d93a479105a75ac390d3bbcd31d690
+      revision: pull/3/head
       userdata:
         ncs:
           upstream-url: https://github.com/CirrusLogic/mcu-drivers
@@ -225,7 +225,7 @@ manifest:
     - name: openthread
       repo-path: sdk-openthread
       path: modules/lib/openthread
-      revision: b9dcdbca4edd348e924d7579a2bada48bf085645
+      revision: pull/3/head
       userdata:
         ncs:
           upstream-url: https://github.com/openthread/openthread
@@ -236,36 +236,36 @@ manifest:
     - name: cmock
       path: test/cmock
       submodules: true
-      revision: f65066f15d8248e6dcb778efb8739904a4512087
+      revision: pull/3/head
       remote: throwtheswitch
     - name: memfault-firmware-sdk
       path: modules/lib/memfault-firmware-sdk
-      revision: 1.6.0
+      revision: pull/3/head
       remote: memfault
     - name: ant
       repo-path: sdk-ant
-      revision: fcfcd1bc801b0ad2ef08117c7a681514729a5c4b
+      revision: pull/3/head
       remote: ant-nrfconnect
       groups:
         - ant
     - name: bsim
       repo-path: bsim_west
       remote: babblesim
-      revision: 384a091445c57b44ac8cbd18ebd245b47c71db94
+      revision: pull/3/head
       import:
         path-prefix: tools
     - name: bme68x
       repo-path: Bosch-BME68x-Library
       remote: bosch
       path: modules/lib/bme68x
-      revision: v1.1.40407
+      revision: pull/3/head
       groups:
         - bsec
     - name: bsec
       repo-path: Bosch-BSEC2-Library
       remote: bosch
       path: modules/lib/bsec
-      revision: v1.5.2400
+      revision: pull/3/head
       groups:
         - bsec
 
