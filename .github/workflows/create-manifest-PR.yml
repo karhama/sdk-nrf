@@ -1,0 +1,102 @@
+#
+# You can call this workflow in your repository. See the example caller workflow:
+#
+# --------------------------------------------------------------------------------------
+# name: Auto create manifest PR
+# on: pull_request
+# jobs:
+#   call-workflow:
+#     uses: nordicbuilder/.github/workflows/auto-manifest-PR.yml@main
+# --------------------------------------------------------------------------------------
+
+name: Simple Manifest PR creation / update
+
+on:
+  workflow_call:
+    secrets:
+      NCS_GITHUB_UPMERGE_TOKEN:
+        required: true
+
+env:
+  GH_TOKEN: ${{ secrets.NCS_GITHUB_UPMERGE_TOKEN }}
+
+jobs:
+# This creates manifest PR
+  create_manifest_pr:
+    if: github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    name: Create manifest PR in sdk-nrf repo
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          repository: 'karhama/sdk-nrf'
+          token: ${{ secrets.NCS_GITHUB_UPMERGE_TOKEN }}
+      - name: Setup git
+        run: |
+          git config --global user.email "pylon@nordicsemi.no"
+          git config --global user.name "Nordic Builder"
+      - name: Change west.yml
+        run: |
+          PROJECT_KEY=$(yq --exit-status '.manifest.projects[] | select(.repo-path == "${{ github.event.repository.name }}") |  key' west.yml)
+          yq ".manifest.projects[$PROJECT_KEY].revision = \"pull/${{ github.event.pull_request.number }}/head\"" west.yml > tmp.yml
+          diff -B west.yml tmp.yml | patch west.yml -
+      - name: Commit changed west.yml and create PR
+        run: |
+          git checkout -b manifest_pr
+          git add west.yml
+          git commit -m "manifest: Update ${{ github.event.repository.name }} revision (auto-manifest PR)" -m "Automatically created by Github Action" --signoff
+          git push origin manifest_pr:auto-manifest-${{ github.event.repository.name }}-${{ github.event.pull_request.number }} -u
+          gh pr create --base main --title "manifest: Update revisions of ${{ github.event.repository.name }}" \
+            --body "Automatically created by Github Action from PR: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/${{ github.event.pull_request.number }}" --label "CI-all-test"
+
+# This will retrigger CI for manifest PR
+  retrigger_ci:
+    if: github.event.action == 'synchronize'
+    runs-on: ubuntu-latest
+    name: Trigger sdk-nrf manifest-PR CI
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          repository: 'karhama/sdk-nrf'
+          token: ${{ secrets.NCS_GITHUB_UPMERGE_TOKEN }}
+          fetch-depth: 0
+      - name: Setup git
+        run: |
+          git config --global user.email "pylon@nordicsemi.no"
+          git config --global user.name "Nordic Builder"
+      - name: Change commit sha and push it
+        run: |
+          git checkout auto-manifest-${{ github.event.repository.name }}-${{ github.event.pull_request.number }}
+          git commit --amend --no-edit
+          git push origin auto-manifest-${{ github.event.repository.name }}-${{ github.event.pull_request.number }}:auto-manifest-${{ github.event.repository.name }}-${{ github.event.pull_request.number }} -f
+
+# This will modify manifest PR once subrepo PR was merged
+  change_pr_to_sha:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    name: Change west.yml PR-pointer to git-sha
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          repository: 'karhama/sdk-nrf'
+          token: ${{ secrets.NCS_GITHUB_UPMERGE_TOKEN }}
+          fetch-depth: 0
+      - name: Setup git
+        run: |
+          git config --global user.email "pylon@nordicsemi.no"
+          git config --global user.name "Nordic Builder"
+          git checkout auto-manifest-${{ github.event.repository.name }}-${{ github.event.pull_request.number }}
+      - name: Change commit sha and push it
+        run: |
+          PROJECT_KEY=$(yq --exit-status '.manifest.projects[] | select(.repo-path == "${{ github.event.repository.name }}") |  key' west.yml)
+          yq ".manifest.projects[$PROJECT_KEY].revision = \"$GITHUB_SHA\"" west.yml > tmp.yml
+          diff -B west.yml tmp.yml | patch west.yml -
+      - name: Commit changed west.yml and create PR
+        run: |
+          git add west.yml
+          git commit --amend --no-edit
+          git push origin auto-manifest-${{ github.event.repository.name }}-${{ github.event.pull_request.number }}:auto-manifest-${{ github.event.repository.name }}-${{ github.event.pull_request.number }} -f
+
