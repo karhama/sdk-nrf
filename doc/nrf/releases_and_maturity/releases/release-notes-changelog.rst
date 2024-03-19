@@ -1,6 +1,6 @@
 .. _ncs_release_notes_changelog:
 
-Changelog for |NCS| v2.5.99
+Changelog for |NCS| v2.5.99 
 ###########################
 
 .. contents::
