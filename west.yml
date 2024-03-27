@@ -19,7 +19,7 @@ manifest:
     # nRF Connect SDK GitHub organization.
     # NCS repositories are hosted here.
     - name: ncs
-      url-base: https://github.com/nrfconnect
+      url-base: https://github.com/nrfconnect 
     # Third-party repository sources:
     - name: zephyrproject
       url-base: https://github.com/zephyrproject-rtos
