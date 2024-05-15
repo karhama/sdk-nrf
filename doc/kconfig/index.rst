@@ -1,7 +1,7 @@
 .. _configuration_options:
 .. _kconfig-search:
 
-Kconfig search
+Kconfig search 
 ##############
 
 
