@@ -17,23 +17,17 @@ jobs:
           workflow: docbuild.yml
           run_id: ${{ github.event.workflow_run.id }}
 
-      - name: Install dependencies
-        run: |
-          sudo apt install -y sshpass
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.NCSDOC_STORAGE_CREDS }}
 
-      - name: Upload documentation
-        env:
-          SSHUSER: ${{ secrets.NCS_TRANSFER_DOC_USR }}
-          SSHPASS: ${{ secrets.NCS_TRANSFER_DOC_PWD }}
-        run: |
-          # trust server
-          mkdir -p ~/.ssh && \
-            ssh-keyscan -p 2222 transfer.nordicsemi.no >> ~/.ssh/known_hosts
-          # upload files
-          for file in docs/legacy*.zip docs/monitor*.txt; do
-            echo "put ${file}" | \
-              sshpass -e sftp -P 2222 -o BatchMode=no -b - $SSHUSER@transfer.nordicsemi.no
-          done
+      - name: Azure CLI script
+        uses: azure/cli@v2
+        with:
+          azcliversion: 2.65.0
+          inlineScript: |
+            az storage blob list -c \$web --account-name ncsdoc
 
       - name: Upload Zoomin documentation
         run: |
