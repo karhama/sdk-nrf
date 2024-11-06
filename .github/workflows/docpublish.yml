@@ -7,7 +7,7 @@ on:
       - completed
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
@@ -17,23 +17,19 @@ jobs:
           workflow: docbuild.yml
           run_id: ${{ github.event.workflow_run.id }}
 
-      - name: Install dependencies
+      - name: Unzip html archive
+        working-directory: docs
         run: |
-          sudo apt install -y sshpass
+          OUTDIR=$(awk 'NR==1 { if ($3 ~ /^(latest|PR-[0-9]+)$/) print $3 }' monitor_*.txt)
+          echo "OUTDIR=$OUTDIR" >> "$GITHUB_ENV"
+          unzip legacy-ncs*.zip -d $OUTDIR
 
-      - name: Upload documentation
+      - name: Copy to blob storage
+        working-directory: docs
         env:
-          SSHUSER: ${{ secrets.NCS_TRANSFER_DOC_USR }}
-          SSHPASS: ${{ secrets.NCS_TRANSFER_DOC_PWD }}
+          AZCOPY_CONCURRENCY_VALUE: 1024
         run: |
-          # trust server
-          mkdir -p ~/.ssh && \
-            ssh-keyscan -p 2222 transfer.nordicsemi.no >> ~/.ssh/known_hosts
-          # upload files
-          for file in docs/legacy*.zip docs/monitor*.txt; do
-            echo "put ${file}" | \
-              sshpass -e sftp -P 2222 -o BatchMode=no -b - $SSHUSER@transfer.nordicsemi.no
-          done
+         azcopy cp $OUTDIR "https://ncsdoc.blob.core.windows.net/\$web/?${{ secrets.NCSDOC_SAS}}" --recursive=true
 
       - name: Upload Zoomin documentation
         run: |
@@ -43,15 +39,12 @@ jobs:
               exit 0
             fi
           done
-
           # trust server
           mkdir -p ~/.ssh
           ssh-keyscan upload-v1.zoominsoftware.io >> ~/.ssh/known_hosts
-
           # prepare key
           echo "${{ secrets.NCS_ZOOMIN_KEY }}" | base64 -d > zoomin_key
           chmod 600 zoomin_key
-
           # upload files
           for file in docs/*-apis-*.zip; do
             sftp -v -i zoomin_key nordic@upload-v1.zoominsoftware.io <<EOF
@@ -62,7 +55,6 @@ jobs:
             quit
           EOF
           done
-
           for file in docs/ncs-*.zip; do
             sftp -v -i zoomin_key nordic@upload-v1.zoominsoftware.io <<EOF
             cd docs-be.nordicsemi.com/sphinx-html/incoming
@@ -74,9 +66,9 @@ jobs:
           done
 
       - name: Add preview URL comment for PRs
-        uses: carlescufi/action-doc-url@main
+        uses: nrfconnect/action-doc-url@main
         with:
-          github-token: ${{ secrets.NCS_GITHUB_TOKEN }}
-          urlroot: ${{ secrets.NCS_DOC_URL_ROOT }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          urlroot: "https://ncsdoc.z6.web.core.windows.net/"
           pr-prefix: "PR-"
           pr-file: docs/pr.txt
