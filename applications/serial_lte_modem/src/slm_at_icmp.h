@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nordic Semiconductor ASA
+ * Copyright (c) 2019 Nordic Semi conductor ASA
  *
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
