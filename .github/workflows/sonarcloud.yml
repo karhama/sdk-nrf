@@ -48,9 +48,9 @@ jobs:
             --quarantine-list nrf/scripts/quarantine.yaml --quarantine-list nrf/scripts/quarantine_integration.yaml \
             -T nrf/samples
       - name: Extract coverage into sonarqube xml format
-        working-directory: ncs/nrf
+        working-directory: ncs
         run: |
-          gcovr twister-out -v --merge-mode-functions=separate --exclude='twister-out|drivers' --sonarqube coverage.xml
+          gcovr twister-out -v --merge-mode-functions=separate --sonarqube coverage.xml
 
       - name: Run sonar-scanner on main
         working-directory: ncs/nrf
