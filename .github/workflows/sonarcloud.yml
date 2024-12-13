@@ -53,7 +53,7 @@ jobs:
           gcovr twister-out -v --merge-mode-functions=separate --sonarqube coverage.xml
 
       - name: Run sonar-scanner on main
-        working-directory: ncs/nrf
+        working-directory: ncs
         if: github.event_name != 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -67,7 +67,7 @@ jobs:
             --define sonar.exclusions=tests/,drivers/sensor/*_dummy/
 
       - name: Run sonar-scanner on PR
-        working-directory: ncs/nrf
+        working-directory: ncs
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
