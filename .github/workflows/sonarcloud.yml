@@ -9,7 +9,7 @@ on:
     paths:
       - '**/*.c'
       - '**/*.h'
-
+ 
 jobs:
   build:
     name: Build and analyze
