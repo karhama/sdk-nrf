@@ -46,7 +46,8 @@ jobs:
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ../zephyr/scripts/twister \
             --ninja --integration \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
-            -T applications/asset_tracker_v2
+            -T applications/asset_tracker_v2 -p native_sim
+
       - name: Extract coverage into sonarqube xml format
         working-directory: ncs/nrf
         run: |
