@@ -36,7 +36,8 @@ jobs:
         run: |
             apt-get update
             apt-get install -y curl unzip
-        pip install pyyaml
+            pip install pyyaml
+
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
 
