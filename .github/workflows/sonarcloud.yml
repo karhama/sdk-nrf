@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
             apt-get update
-            apt-get install -y curl
+            apt-get install -y curl unzip
 #       pip install -r ncs/nrf/scripts/requirements-build.txt
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
