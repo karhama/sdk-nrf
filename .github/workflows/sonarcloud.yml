@@ -32,11 +32,11 @@ jobs:
           git-fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
           path: ncs/nrf
 
-     # - name: Install dependencies
-     #   run: |
-     #       pip install -r ncs/nrf/scripts/requirements-build.txt
-     #       apt-get update
-     #       apt-get install -y curl ruby-full
+      - name: Install dependencies
+        run: |
+            apt-get update
+            apt-get install -y curl
+#       pip install -r ncs/nrf/scripts/requirements-build.txt
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
 
