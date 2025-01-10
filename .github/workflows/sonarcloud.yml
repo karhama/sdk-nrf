@@ -36,7 +36,7 @@ jobs:
         run: |
             apt-get update
             apt-get install -y curl unzip
-#       pip install -r ncs/nrf/scripts/requirements-build.txt
+        pip install pyyaml
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
 
