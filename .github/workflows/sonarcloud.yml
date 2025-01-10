@@ -14,7 +14,7 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    container: ghcr.io/zephyrproject-rtos/ci:v0.27.4
+    container: ghcr.io/nrfconnect/sdk-nrf-toolchain:v2.9.0
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
       CMAKE_PREFIX_PATH: /opt/toolchains
@@ -32,11 +32,11 @@ jobs:
           git-fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
           path: ncs/nrf
 
-      - name: Install dependencies
-        run: |
-            pip install -r ncs/nrf/scripts/requirements-build.txt
-            apt-get update
-            apt-get install -y curl ruby-full
+     # - name: Install dependencies
+     #   run: |
+     #       pip install -r ncs/nrf/scripts/requirements-build.txt
+     #       apt-get update
+     #       apt-get install -y curl ruby-full
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v3
 
