@@ -47,9 +47,8 @@ jobs:
 
       - name: Build and test
         working-directory: ncs/nrf
-        env: 
-          ZEPHYR_SDK_INSTALL_DIR: ${{ github.workspace }}/nrf/zephyr
         run: |
+          export ZEPHYR_SDK_INSTALL_DIR=$(dirname $(pwd))/zephyr
           build-wrapper-linux-x86-64 --out-dir build_wrapper_output ../zephyr/scripts/twister \
             --ninja --integration --coverage --coverage-tool gcovr --coverage-formats sonarqube \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
