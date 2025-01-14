@@ -22,6 +22,8 @@ jobs:
         shell: bash
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
+      ZEPHYR_SDK_INSTALL_DIR: ${{ github.workspace }}/nrf/zephyr
+
     steps:
       - uses: nrfconnect/action-checkout-west-update@main
         if: github.event_name == 'pull_request'
