@@ -69,7 +69,7 @@ jobs:
           sonar-scanner \
             --define sonar.cfamily.compile-commands="${{ env.BUILD_WRAPPER_OUT_DIR }}"/compile_commands.json \
             --define project.settings=sonar-project.properties \
-            --define sonar.coverageReportPaths=twister-out/coverage/coverage.xml \
+            --define sonar.coverageReportPaths=twister-out/coverage/coverage.sonarqube.xml \
             --define sonar.inclusions=**/*.c,**/*.h \
             --define sonar.exclusions=tests/,drivers/sensor/*_dummy/
 
