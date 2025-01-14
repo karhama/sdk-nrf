@@ -49,7 +49,7 @@ jobs:
         working-directory: ncs/nrf
         run: |
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ../zephyr/scripts/twister \
-            --ninja --integration --coverage --coverage-tool gcovr --coverage-formats xml \
+            --ninja --integration --coverage --coverage-tool gcovr --coverage-formats sonarqube \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
             -T applications/asset_tracker_v2
 
