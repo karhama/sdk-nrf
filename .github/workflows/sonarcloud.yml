@@ -50,7 +50,7 @@ jobs:
         run: |
           export ZEPHYR_SDK_INSTALL_DIR=$(dirname $(pwd))/zephyr
           build-wrapper-linux-x86-64 --out-dir build_wrapper_output ../zephyr/scripts/twister \
-            --ninja --integration --coverage --coverage-tool gcovr --coverage-formats sonarqube \
+            --ninja --integration --coverage --coverage-tool gcovr --gcov-tool gcovr --coverage-formats sonarqube \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
             -T applications/asset_tracker_v2
 
