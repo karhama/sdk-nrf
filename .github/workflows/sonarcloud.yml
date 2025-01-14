@@ -48,15 +48,15 @@ jobs:
       - name: Build and test
         working-directory: ncs/nrf
         run: |
-          ../zephyr/scripts/twister \
-            --ninja --integration \
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ../zephyr/scripts/twister \
+            --ninja --integration --coverage --coverage-tool gcovr --coverage-formats xml \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
             -T applications/asset_tracker_v2
 
-      - name: Extract coverage into sonarqube xml format
-        working-directory: ncs/nrf
-        run: |
-          gcovr twister-out -v --merge-mode-functions=separate --sonarqube coverage.xml
+#      - name: Extract coverage into sonarqube xml format
+#        working-directory: ncs/nrf
+#        run: |
+#          gcovr twister-out -v --merge-mode-functions=separate --sonarqube coverage.xml
 
       - name: Run sonar-scanner on main
         working-directory: ncs/nrf
@@ -66,9 +66,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           sonar-scanner \
-            --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+            --define sonar.cfamily.compile-commands="${{ env.BUILD_WRAPPER_OUT_DIR }}"/compile_commands.json \
             --define project.settings=sonar-project.properties \
-            --define sonar.coverageReportPaths=coverage.xml \
+            --define sonar.coverageReportPaths=twister-out/coverage/coverage.xml \
             --define sonar.inclusions=**/*.c,**/*.h \
             --define sonar.exclusions=tests/,drivers/sensor/*_dummy/
 
