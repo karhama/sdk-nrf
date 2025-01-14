@@ -20,9 +20,8 @@ jobs:
         # Bash shell is needed to set toolchain related environment variables in docker container
         # It is a workaround for GitHub Actions limitation https://github.com/actions/runner/issues/1964
         shell: bash
-    env:
-      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
-      ZEPHYR_SDK_INSTALL_DIR: ${{ github.workspace }}/nrf/zephyr
+#    env:
+#      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
 
     steps:
       - uses: nrfconnect/action-checkout-west-update@main
@@ -48,8 +47,10 @@ jobs:
 
       - name: Build and test
         working-directory: ncs/nrf
+        env: 
+          ZEPHYR_SDK_INSTALL_DIR: ${{ github.workspace }}/nrf/zephyr
         run: |
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ../zephyr/scripts/twister \
+          build-wrapper-linux-x86-64 --out-dir build_wrapper_output ../zephyr/scripts/twister \
             --ninja --integration --coverage --coverage-tool gcovr --coverage-formats sonarqube \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
             -T applications/asset_tracker_v2
@@ -63,7 +64,7 @@ jobs:
         run: |
           cat twister-out/coverage/coverage.sonarqube.xml
           sonar-scanner \
-            --define sonar.cfamily.compile-commands="${{ env.BUILD_WRAPPER_OUT_DIR }}"/compile_commands.json \
+            --define sonar.cfamily.compile-commands=build_wrapper_output/compile_commands.json \
             --define project.settings=sonar-project.properties \
             --define sonar.coverageReportPaths=twister-out/coverage/coverage.sonarqube.xml \
             --define sonar.inclusions=**/*.c,**/*.h \
