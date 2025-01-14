@@ -22,8 +22,6 @@ jobs:
         shell: bash
     env:
       BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
-#      CMAKE_PREFIX_PATH: /opt/toolchains
-#      ZEPHYR_SDK_INSTALL_DIR: ${{ github.workspace }}/nrf/zephyr
     steps:
       - uses: nrfconnect/action-checkout-west-update@main
         if: github.event_name == 'pull_request'
@@ -52,12 +50,7 @@ jobs:
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} ../zephyr/scripts/twister \
             --ninja --integration --coverage --coverage-tool gcovr --coverage-formats sonarqube \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
-            -T applications/asset_tracker_v2 -p native_sim
-
-#      - name: Extract coverage into sonarqube xml format
-#        working-directory: ncs/nrf
-#        run: |
-#          gcovr twister-out -v --merge-mode-functions=separate --sonarqube coverage.xml
+            -T applications/asset_tracker_v2
 
       - name: Run sonar-scanner on main
         working-directory: ncs/nrf
@@ -66,6 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          cat twister-out/coverage/coverage.sonarqube.xml
           sonar-scanner \
             --define sonar.cfamily.compile-commands="${{ env.BUILD_WRAPPER_OUT_DIR }}"/compile_commands.json \
             --define project.settings=sonar-project.properties \
