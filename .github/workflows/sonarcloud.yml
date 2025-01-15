@@ -48,11 +48,10 @@ jobs:
       - name: Build and test
         working-directory: ncs/nrf
         run: |
-          export ZEPHYR_SDK_INSTALL_DIR=$(dirname $(pwd))/zephyr
           build-wrapper-linux-x86-64 --out-dir build_wrapper_output ../zephyr/scripts/twister \
             --ninja --integration \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
-            -T nrf/samples -T nrf/applications
+            -T samples -T applications
 
       - name: Run sonar-scanner on main
         working-directory: ncs/nrf
