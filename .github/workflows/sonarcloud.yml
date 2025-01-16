@@ -58,7 +58,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          cat twister-out/coverage/coverage.sonarqube.xml
           sonar-scanner \
             --define sonar.cfamily.compile-commands=build_wrapper_output/compile_commands.json \
             --define project.settings=sonar-project.properties \
