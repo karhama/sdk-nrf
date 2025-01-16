@@ -20,8 +20,6 @@ jobs:
         # Bash shell is needed to set toolchain related environment variables in docker container
         # It is a workaround for GitHub Actions limitation https://github.com/actions/runner/issues/1964
         shell: bash
-#    env:
-#      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
 
     steps:
       - uses: nrfconnect/action-checkout-west-update@main
@@ -51,7 +49,7 @@ jobs:
           build-wrapper-linux-x86-64 --out-dir build_wrapper_output ../zephyr/scripts/twister \
             --ninja --integration \
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
-            -T samples -T applications
+            -T applications/asset_tracker_v2
 
       - name: Run sonar-scanner on main
         working-directory: ncs/nrf
@@ -64,7 +62,6 @@ jobs:
           sonar-scanner \
             --define sonar.cfamily.compile-commands=build_wrapper_output/compile_commands.json \
             --define project.settings=sonar-project.properties \
-            --define sonar.coverageReportPaths=twister-out/coverage/coverage.sonarqube.xml \
             --define sonar.inclusions=**/*.c,**/*.h \
             --define sonar.exclusions=tests/,drivers/sensor/*_dummy/
 
@@ -82,9 +79,8 @@ jobs:
           sonar-scanner \
             --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
             --define project.settings=sonar-project.properties \
-            --define sonar.coverageReportPaths=coverage.xml \
             --define sonar.inclusions=**/*.c,**/*.h \
-            --define sonar.exclusions=tests/,drivers/sensor/*_dummy/ \
+            --define sonar.exclusions=tests/ \
             --define sonar.scm.revision=${{ env.HEAD_SHA }} \
             --define sonar.pullrequest.key=${{ env.PR_NUMBER }} \
             --define sonar.pullrequest.branch=${{ env.PR_BRANCH }} \
