@@ -68,6 +68,6 @@ jobs:
       - name: Upload Build Wrapper Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ncs/nrf/build_wrapper_output
+          name: build_wrapper_output
           path: ncs/nrf/build_wrapper_output
 
