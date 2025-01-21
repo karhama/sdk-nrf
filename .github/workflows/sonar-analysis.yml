@@ -9,10 +9,14 @@ jobs:
   sonar:
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download Artifact
         uses: actions/download-artifact@v3
         with:
-          name: build_wrapper_output
+          workflow: sonarcloud.yml
+          run_id: ${{ github.event.workflow_run.id }}
 
       - name: SonarCloud Analysis
         uses: SonarSource/sonarqube-scan-action@v4
@@ -21,3 +25,10 @@ jobs:
         with:
           args: >
             --define sonar.cfamily.compile-commands="build_wrapper_output/compile_commands.json"
+            --define project.settings=sonar-project.properties \
+            --define sonar.inclusions=**/*.c,**/*.h \
+            --define sonar.exclusions=tests/ \
+            --define sonar.scm.revision=${{ env.HEAD_SHA }} \
+            --define sonar.pullrequest.key=${{ env.PR_NUMBER }} \
+            --define sonar.pullrequest.branch=${{ env.PR_BRANCH }} \
+            --define sonar.pullrequest.base=${{ env.BASE_REF }}
