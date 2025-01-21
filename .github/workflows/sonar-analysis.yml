@@ -4,6 +4,9 @@ on:
     workflows: ["SonarCloud"]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      runid
 
 jobs:
   sonar:
@@ -12,12 +15,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: sonarcloud.yml
           run_id: ${{ github.event.workflow_run.id }}
 
+      - name: Extract Variables from File
+        run: |
+          # Directly extract values using grep
+          HEAD_SHA=$(grep '^HEAD_SHA=' build_env.txt | cut -d '=' -f 2)
+          PR_NUMBER=$(grep '^PR_NUMBER=' build_env.txt | cut -d '=' -f 2)
+          PR_BRANCH=$(grep '^PR_BRANCH=' build_env.txt | cut -d '=' -f 2)
+          BASE_REF=$(grep '^BASE_REF=' build_env.txt | cut -d '=' -f 2)
+      
+          # Export values for later steps
+          echo "HEAD_SHA=$HEAD_SHA" >> $GITHUB_ENV
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          echo "PR_BRANCH=$PR_BRANCH" >> $GITHUB_ENV
+          echo "BASE_REF=$BASE_REF" >> $GITHUB_ENV
+
+    
       - name: SonarCloud Analysis
         uses: SonarSource/sonarqube-scan-action@v4
         env:
