@@ -51,9 +51,23 @@ jobs:
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
             -T applications/asset_tracker_v2
 
+      - name: Set variables file
+        working-directory: ncs/nrf/build_wrapper_output
+        run: |
+          echo "HEAD_SHA=${{ github.sha }}" >> build_env.txt
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> build_env.txt
+            echo "PR_BRANCH=${{ github.event.pull_request.head.ref }}" >> build_env.txt
+            echo "BASE_REF=${{ github.event.pull_request.base.ref }}" >> build_env.txt
+          else
+            echo "PR_NUMBER=" >> build_env.txt
+            echo "PR_BRANCH=" >> build_env.txt
+            echo "BASE_REF=" >> build_env.txt
+          fi
+
       - name: Upload Build Wrapper Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: build_wrapper_output
-          path: build_wrapper_output
-          
+          name: ncs/nrf/build_wrapper_output
+          path: ncs/nrf/build_wrapper_output
+
