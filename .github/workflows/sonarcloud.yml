@@ -40,8 +40,8 @@ jobs:
             apt-get update
             apt-get install -y curl unzip ruby gcc-multilib make
 
-      - name: Install sonar-scanner and build-wrapper
-        uses: SonarSource/sonarcloud-github-c-cpp@v3
+      - name: Install Build Wrapper
+        uses: SonarSource/sonarqube-scan-action/install-build-wrapper@v4
 
       - name: Build and test
         working-directory: ncs/nrf
@@ -51,36 +51,11 @@ jobs:
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
             -T applications/asset_tracker_v2
 
-      - name: Run sonar-scanner on main
-        working-directory: ncs/nrf
-        if: github.event_name != 'pull_request'
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner \
-            --define sonar.cfamily.compile-commands=build_wrapper_output/compile_commands.json \
-            --define project.settings=sonar-project.properties \
-            --define sonar.inclusions=**/*.c,**/*.h \
-            --define sonar.exclusions=tests/,drivers/sensor/*_dummy/
-
-      - name: Run sonar-scanner on PR
-        working-directory: ncs/nrf
-        if: github.event_name == 'pull_request'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          sonar-scanner \
-            --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
-            --define project.settings=sonar-project.properties \
-            --define sonar.inclusions=**/*.c,**/*.h \
-            --define sonar.exclusions=tests/ \
-            --define sonar.scm.revision=${{ env.HEAD_SHA }} \
-            --define sonar.pullrequest.key=${{ env.PR_NUMBER }} \
-            --define sonar.pullrequest.branch=${{ env.PR_BRANCH }} \
-            --define sonar.pullrequest.base=${{ env.BASE_REF }}
+        with:
+          # Consult https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/scanners/sonarscanner/ for more information and options
+          args: >
+            --define sonar.cfamily.compile-commands="build_wrapper_output/compile_commands.json" 
