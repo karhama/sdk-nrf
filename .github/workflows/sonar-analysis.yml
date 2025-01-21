@@ -1,0 +1,23 @@
+name: SonarCloud Analysis
+on:
+  workflow_run:
+    workflows: ["SonarCloud"]
+    types:
+      - completed
+
+jobs:
+  sonar:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build_wrapper_output
+
+      - name: SonarCloud Analysis
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            --define sonar.cfamily.compile-commands="build_wrapper_output/compile_commands.json"
