@@ -51,11 +51,9 @@ jobs:
             --quarantine-list scripts/quarantine.yaml --quarantine-list scripts/quarantine_integration.yaml \
             -T applications/asset_tracker_v2
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Upload Build Wrapper Artifact
+        uses: actions/upload-artifact@v3
         with:
-          # Consult https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/scanners/sonarscanner/ for more information and options
-          args: >
-            --define sonar.cfamily.compile-commands="build_wrapper_output/compile_commands.json" 
+          name: build_wrapper_output
+          path: build_wrapper_output
+          
