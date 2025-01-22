@@ -6,7 +6,10 @@ on:
       - completed
   workflow_dispatch:
     inputs:
-      runid
+      debug_run_id:
+        description: "Run ID for debugging purposes"
+        required: true
+        default: ""
 
 jobs:
   sonar:
@@ -19,7 +22,8 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: sonarcloud.yml
-          run_id: ${{ github.event.workflow_run.id }}
+          run_id: ${{ inputs.debug_run_id }}
+          #run_id: ${{ github.event.workflow_run.id }}
 
       - name: Extract Variables from File
         run: |
@@ -35,9 +39,22 @@ jobs:
           echo "PR_BRANCH=$PR_BRANCH" >> $GITHUB_ENV
           echo "BASE_REF=$BASE_REF" >> $GITHUB_ENV
 
+      - name: SonarCloud Analysis
+        uses: SonarSource/sonarqube-scan-action@v4
+        if: env.PR_NUMBER == ''  # Main branch
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            --define sonar.cfamily.compile-commands="build_wrapper_output/compile_commands.json"
+            --define project.settings=sonar-project.properties \
+            --define sonar.inclusions=**/*.c,**/*.h \
+            --define sonar.exclusions=tests/ \
+            --define sonar.scm.revision=${{ env.HEAD_SHA }} \
     
       - name: SonarCloud Analysis
         uses: SonarSource/sonarqube-scan-action@v4
+        if: env.PR_NUMBER != ''  # Only run if PR_NUMBER is set
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
