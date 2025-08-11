@@ -1,0 +1,139 @@
+name: Hello World (Multiplatform)
+
+on:
+  push:
+    branches:
+      - main
+      - v*-branch
+  pull_request:
+    branches:
+      - main
+      - v*-branch
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  twister-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2022]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: 3.12
+
+      - name: Checkout sources
+        uses: nrfconnect/action-checkout-west-update@main
+        with:
+          git-fetch-depth: 0
+
+      - name: Install nrfutil and toolchain manager
+        working-directory: ncs
+        run: |
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              NRFUTIL_LOCATION="x86_64-pc-windows-msvc/nrfutil.exe"
+              curl -sSLO "https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/$NRFUTIL_LOCATION"
+              ./nrfutil.exe install sdk-manager
+            elif [ "${{ runner.os }}" = "macOS" ]; then
+              NRFUTIL_LOCATION="universal-apple-darwin/nrfutil"
+              wget -q "https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/$NRFUTIL_LOCATION"
+              sudo chmod +x nrfutil
+              ./nrfutil install sdk-manager
+            elif [ "${{ runner.os }}" = "Linux" ]; then
+              NRFUTIL_LOCATION="x86_64-unknown-linux-gnu/nrfutil"
+              curl -sSLO "https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/$NRFUTIL_LOCATION"
+              chmod +x nrfutil
+              ./nrfutil install sdk-manager
+            fi
+        shell: bash
+
+      - name: Find proper toolchain bundle
+        working-directory: ncs
+        id: set-tb-id
+        run: |
+            if [ "${{ runner.os }}" = "macOS" ]; then
+              echo "TOOLCHAIN_BUNDLE_NAME=ncs-toolchain-aarch64-macos-$(./nrf/scripts/print_toolchain_checksum.sh).tar.gz" >> $GITHUB_OUTPUT
+            elif [ "${{ runner.os }}" = "Windows" ]; then
+              echo "TOOLCHAIN_BUNDLE_NAME=ncs-toolchain-x86_64-windows-$(./nrf/scripts/print_toolchain_checksum.sh).tar.gz" >> $GITHUB_OUTPUT
+            elif [ "${{ runner.os }}" = "Linux" ]; then
+              echo "TOOLCHAIN_BUNDLE_NAME=ncs-toolchain-x86_64-linux-$(./nrf/scripts/print_toolchain_checksum.sh).tar.gz" >> $GITHUB_OUTPUT
+            fi
+        shell: bash
+
+      - name: Restore toolchain bundle from cache
+        id: restore-cached-tb
+        uses: actions/cache/restore@v4
+        with:
+          path: ncs/${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+          key: ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+
+      - name: Download toolchain bundle if not cached
+        working-directory: ncs
+        if: steps.restore-cached-tb.outputs.cache-hit != 'true'
+        run: curl -SLO https://files.nordicsemi.com/artifactory/NCS/external/bundles/v3/${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+
+      - name: Save toolchain bundle to cache
+        if: steps.restore-cached-tb.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ncs/${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+          key: ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+
+      - name: Install proper toolchain bundle
+        working-directory: ncs
+        run: |
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              ./nrfutil.exe sdk-manager toolchain install --toolchain-bundle ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+            elif [ "${{ runner.os }}" = "macOS" ]; then
+              sudo ./nrfutil sdk-manager toolchain install --toolchain-bundle ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+            else
+              ./nrfutil sdk-manager toolchain install --toolchain-bundle ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+              sudo apt-get install gcc-multilib
+            fi
+        shell: bash
+
+      - name: Build firmware
+        working-directory: ncs
+        shell: bash
+        run: |
+          TOOLCHAIN_BUNDLE_ID=$(./nrf/scripts/print_toolchain_checksum.sh)
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            EXTRA_TWISTER_FLAGS="--quarantine-list nrf/scripts/quarantine_windows_mac.yaml"
+            NRFUTIL="sudo ./nrfutil sdk-manager toolchain launch --toolchain-bundle-id $TOOLCHAIN_BUNDLE_ID -- python3 zephyr/scripts/twister "
+          elif [ "${{ runner.os }}" = "Windows" ]; then
+            export PYTHONUTF8=1
+            EXTRA_TWISTER_FLAGS="--short-build-path --quarantine-list nrf\scripts\quarantine_windows_mac.yaml --no-detailed-test-id"
+            NRFUTIL="./nrfutil.exe sdk-manager toolchain launch --toolchain-bundle-id $TOOLCHAIN_BUNDLE_ID -- python zephyr/scripts/twister"
+          else
+            EXTRA_TWISTER_FLAGS=""
+            NRFUTIL="./nrfutil sdk-manager toolchain launch --toolchain-bundle-id $TOOLCHAIN_BUNDLE_ID -- python3 zephyr/scripts/twister "
+          fi
+          $NRFUTIL --ninja --force-color --inline-logs --verbose --overflow-as-errors --integration \
+          --retry-build-errors --quarantine-list nrf/scripts/quarantine.yaml \
+          --quarantine-list nrf/scripts/quarantine_integration.yaml \
+          --subset 1/200 --outdir twister_build --report-dir results_samples -T nrf/samples -T nrf/applications \
+          -v $EXTRA_TWISTER_FLAGS
+
+      - name: Upload twister
+        if: always()
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          name: Twister results dir ${{ runner.os }}
+          if-no-files-found: ignore
+          include-hidden-files: false
+          retention-days: 7
+          path: |
+            ncs/results_samples/**/*
+            ncs/twister_build/**/*
+
+
