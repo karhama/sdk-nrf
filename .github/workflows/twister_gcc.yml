@@ -1,0 +1,114 @@
+name: Twister gcc full scope
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gcc-twister-build:
+    runs-on: ubuntu-24.04
+    outputs:
+      artifact-url: ${{ steps.artifact-upload-step.outputs.artifact-url }}
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Checkout sources
+        uses: nrfconnect/action-checkout-west-update@main
+        with:
+          west-token: ${{ secrets.NCS_GITHUB_TOKEN }}
+
+      - name: Install requirements
+        shell: bash
+        run: |
+          NRFUTIL_LOCATION="x86_64-unknown-linux-gnu/nrfutil"
+          curl -sSLO "https://files.nordicsemi.com/artifactory/swtools/external/nrfutil/executables/$NRFUTIL_LOCATION"
+          chmod +x nrfutil
+          ./nrfutil install toolchain-manager
+
+      - name: Find proper toolchain bundle
+        working-directory: ncs
+        id: set-tb-id
+        run: |
+              echo "TOOLCHAIN_BUNDLE_NAME=ncs-toolchain-x86_64-linux-$(./nrf/scripts/print_toolchain_checksum.sh).tar.gz" >> $GITHUB_OUTPUT
+
+      - name: Restore toolchain bundle from cache
+        id: restore-cached-tb
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+          key: ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+
+      - name: Download toolchain bundle if not cached
+        if: steps.restore-cached-tb.outputs.cache-hit != 'true'
+        run: wget https://files.nordicsemi.com/artifactory/NCS/external/bundles/v3/${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+
+      - name: Save toolchain bundle to cache
+        if: steps.restore-cached-tb.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+          key: ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+
+      - name: Install proper toolchain bundle
+        run: ./nrfutil toolchain-manager install --toolchain-bundle ${{steps.set-tb-id.outputs.TOOLCHAIN_BUNDLE_NAME}}
+
+      - name: Run twister
+#        working-directory: ncs
+        run: |
+          ./nrfutil toolchain-manager launch --chdir ncs -- \
+          ./zephyr/scripts/twister --ninja --verbose --overflow-as-errors --report-dir results_samples \
+          --outdir twister-build --quarantine-list nrf/scripts/quarantine_llvm.yaml --prep-artifacts-for-testing \
+          -T nrf/samples/bluetooth/peripheral_lbs -T nrf/samples/bluetooth/central_uart -T nrf/samples/bluetooth/peripheral_power_profiling \
+          -T nrf/samples/peripheral/radio_test -T nrf/applications/nrf_desktop -T zephyr/samples/drivers/adc/adc_dt \
+          -T zephyr/samples/boards/nordic/system_off -T nrf/samples/openthread/cli -T nrf/samples/crypto/sha256 \
+          -T nrf/samples/crypto/aes_gcm -T nrf/samples/nrf_rpc/protocols_serialization/server -T nrf/samples/nfc/shell \
+          -T nrf/samples/nfc/writable_ndef_msg -T zephyr/samples/hello_world -T nrf/samples/zephyr/subsys/usb \
+          -T nrf/samples/zephyr/drivers/i2c/rtio_loopback -T nrf/samples/zephyr/drivers/spi_flash -T nrf/tests/zephyr/drivers/flash/common \
+          -T zephyr/samples/subsys/mgmt/mcumgr/smp_svr -T nrf/samples/bluetooth/direct_test_mode \
+          --platform nrf54l15dk/nrf54l15/cpuapp \
+          --platform nrf54lm20pdk/nrf54lm20a/cpuapp
+
+      - name: Upload twister
+        if: always()
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          name: Twister results dir
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            ncs/results_samples/**/*
+            ncs/twister-build/**/*
+
+      - name: Analyze Twister Reports
+        if: failure()
+        working-directory: ncs
+        run: |
+          zephyr/scripts/ci/twister_report_analyzer.py results_samples/twister.json --long-summary --platforms --output-md errors.md
+          if [[ -s "errors.md" ]]; then
+            echo '### Error Summary! 🚀' >> $GITHUB_STEP_SUMMARY
+            cat errors.md  >> $GITHUB_STEP_SUMMARY
+          fi
+          ls -l
+
+      - name: Upload Twister Analysis Results
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Twister summary
+          if-no-files-found: ignore
+          path: |
+            ncs/twister_report_summary.json
+
