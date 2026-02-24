@@ -1,0 +1,16 @@
+name: Workflow Run
+on:
+  workflow_run:
+    workflows:
+      - PR
+    types:
+      - completed
+jobs:
+  dump:
+    if: ${{ github.event.workflow_run.event == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
