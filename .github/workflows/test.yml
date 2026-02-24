@@ -1,0 +1,19 @@
+name: Test missing pr.txt
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run command without pr.txt
+        run: |
+          echo "Running in $(pwd)"
+          echo "PR=$(cat pr.txt)" >> "$GITHUB_ENV"
+          echo "Command completed"
+
+      - name: Show PR variable
+        run: |
+          echo "PR is: '${PR}'"
