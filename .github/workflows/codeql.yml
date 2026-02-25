@@ -24,9 +24,9 @@ jobs:
         include:
           - language: c-cpp
             build-mode: none
+            config: ./.github/codeql/codeql-c-config.yml
           - language: python
             build-mode: none
-            config: ./.github/codeql/codeql-c-config.yml
           - language: actions
             build-mode: none
             config: ./.github/codeql/codeql-actions-config.yml
