@@ -2,7 +2,7 @@ name: Twister nightly mac
 
 on:
   schedule:
-    - cron: "0 21 * * *"
+    - cron: "42 20 * * *"
   workflow_dispatch:
 
 permissions:
