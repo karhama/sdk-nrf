@@ -2,7 +2,7 @@ name: Twister nightly mac
 
 on:
   schedule:
-    - cron: "0 21 * * *"
+    - cron: "42 20 * * *"
   workflow_dispatch:
 
 permissions:
@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        subset: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+        subset: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     defaults:
       run:
         working-directory: ncs
@@ -38,10 +38,10 @@ jobs:
       - name: Run twister
         run: |
           nrf/scripts/ci/twister_runner.sh --ninja --inline-logs --verbose --overflow-as-errors \
-            --integration --jobs 2 \
+            --integration --jobs 4 \
             --quarantine-list nrf/scripts/quarantine.yaml \
             --quarantine-list nrf/scripts/quarantine_windows_mac.yaml \
-            --subset ${{ matrix.subset }}/30 --outdir twister-build --report-dir results_samples \
+            --subset ${{ matrix.subset }}/15 --outdir twister-build --report-dir results_samples \
             -T nrf/samples
 
       - name: Upload twister results
