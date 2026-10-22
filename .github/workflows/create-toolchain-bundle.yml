@@ -1,0 +1,50 @@
+name: Toolchain bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest_label:
+        description: "Stored in bundle manifest (default: current branch or tag)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [linux, windows, macos]
+        include:
+          - os: linux
+            runner: ubuntu-24.04
+          - os: windows
+            runner: windows-latest
+          - os: macos
+            runner: macos-14
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      # windows-latest provides Git Bash when shell: bash (required for create_toolchain_bundle.sh).
+      - name: Build toolchain bundle
+        id: build
+        shell: bash
+        env:
+          MANIFEST_LABEL: >-
+            ${{
+              inputs.manifest_label != ''
+              && inputs.manifest_label
+              || github.head_ref
+              || github.ref_name
+            }}
+        run: ./scripts/ci/create_toolchain_bundle.sh
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ncs-toolchain-${{ matrix.os }}-${{ steps.build.outputs.bundle_id }}
+          path: output/*.tar.gz
+          if-no-files-found: error
